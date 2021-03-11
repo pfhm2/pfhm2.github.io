@@ -1,0 +1,480 @@
+<!--Aldo's Game-->
+<!DOCTYPE html>
+
+<head>
+    <!------------------------------------------Bootstrap----------------------------------------------->
+    <title>Heaven</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+</head>
+<!-------------------------------------------CSS STYLE ------------------------------------------------>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        width: 100vw;
+        height: 100vh;
+    }
+
+    #canvasContainer {
+        text-align: center;
+    }
+
+    #seconds {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-size: 2rem;
+        height: 10vh;
+        color: rgb(233, 71, 233);
+        background: cyan;
+    }
+
+    #score {
+        font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+        font-size: 2rem;
+        color: cyan;
+        background: rgb(214, 46, 219);
+    }
+
+    #splashScreen {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        /*background-image: url(nasaImage.jpg);*/
+        background-color: black;
+    }
+
+    #playAgainScreen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        display: none;
+        background-image: url(fire4.jpg);
+    }
+
+    #playAgainScreen h1 {
+        color: aqua;
+    }
+
+    #playAgainScreen h3 {
+        color: #ff1ac6;
+    }
+
+    #splashScreen h1 {
+        color: deepskyblue;
+    }
+
+    #splashScreen h3 {
+        color: rgb(20, 233, 180);
+    }
+
+    #splashScreen p {
+        font-size: 30px;
+        color: rgb(255, 24, 243);
+    }
+
+    #splashScreen li {
+        font-size: 30px;
+        color: rgb(212, 233, 20);
+    }
+
+    .info-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .splashscreen-container {
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        width: 100vw;
+        height: 90wh;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<body>
+    <!------------------------------------------- WELCOME SCREEN ------------------------------------------------>
+    <div id="splashScreen" class="splashscreen-container">
+        <h1>Welcome to The Night Sky!</h1>
+        <h3 id="startInfo">Jump through the clouds to get as many stars as you possible can! Under </h3>
+        <p><strong>Instructions: </strong></p>
+        <ol>
+            <li>Jump by pressing the space bar </li>
+            <li>Move by pressing the right or left arrow keys</li>
+        </ol>
+
+        <button id="startButton" type="button" class="btn "><a href="#" class="enter_link">Play!!</a></button>
+    </div>
+
+    <!------------------------------------------- TIME AND SCORE DIV CONTAINERS ------------------------------------------------>
+    <div id="canvasContainer" class="container-fluid">
+        <div class="row info">
+            <div class="col-md-6 info-container" id="seconds">Hi</div>
+            <div class="col-md-6 info-container" ; id="score">Welcome</div>
+        </div>
+        <canvas id='canvas' width="500" height="600"></canvas>
+        <!--CANVAS-->
+    </div>
+
+    <!------------------------------------------- LAST SCREEN (PLAY AGAIN) ------------------------------------------------>
+    <div class="jumbotron text-center " id="playAgainScreen">
+        <h1>Thanks for playing</h1>
+        <h3 id="displayScore"></h3>
+        <h3 id="scoreInfo"></h3>
+        <h3>Do you want to play again? click play!</h3>
+        <button onclick="refresh()" id="starAgain" type="button" class="btn btn-outline-primary"><a href="#"
+                class="enter_link">Play!!</a></button>
+    </div>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = "black";                                   //DRAW CANVAS
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fill();
+
+        var jumpSound = new sound("jump.mp3");                   //SOUNDS USED 
+        var gameoverSound = new sound("score.wav");
+        var countDownSound = new sound("countDown.wav");
+        var forestSounds = new sound("forestSounds.mp3");
+
+        function sound(src) {                                  //PLAY OR STOP SOUND 
+            this.sound = document.createElement("audio");
+            this.sound.src = src;
+            this.sound.setAttribute("preload", "auto");
+            this.sound.setAttribute("controls", "none");
+            this.sound.style.display = "none";
+            document.body.appendChild(this.sound);
+
+            this.play = function () {
+                this.sound.play();
+            }
+            this.stop = function () {
+                this.sound.pause();
+            }
+        }
+        /******************************************** Global Declarations *****************************/
+        var secondsLeft = 50;
+        var startInfo = document.getElementById("startInfo");
+        startInfo.innerHTML += " " + secondsLeft + " seconds! :)";  //CHANGE WELCOME PAGE DEPENDING ON THE SPECIFIED SECONDS
+        var player = new player();
+        var jump = false;
+        var rightPressed = false;
+        var leftPressed = false;
+        var cloudCount = 7;
+        var clouds = [];
+        var starCount = 65;
+        var stars = [];
+        var onCloud = false;
+        var onGround = false;
+        var starsTaken = 0;
+        var counter = 0;
+        var time;
+        var zero = false;
+        var moreStars = true;
+        var allStars = false;
+
+        var cloudChangeMove = false;
+        var cloudImage = new Image();
+        cloudImage.src = "theCloud.png";       //IMAGES
+        var playerFace = new Image();
+        playerFace.src = "dini.png";
+        var starImage = new Image();
+        starImage.src = "star.png";
+
+        clouds[0] = new Cloud(100, 500);
+        clouds[1] = new Cloud(310, 450);
+        clouds[2] = new Cloud(50, 365);
+        clouds[2].width = 115;                   //CLOUDS WITH THEIR COORDINATES
+        clouds[3] = new Cloud(220, 255);
+        clouds[4] = new Cloud(400, 156);
+        clouds[5] = new Cloud(50, 80);
+        clouds[6] = new Cloud(440, 550);
+
+        for (var i = 0; i < starCount; i++) {          //CLOUD MAKER
+            stars[i] = new Star();
+        }
+        function Cloud(x, y) {                 //CLOUD CONSTRUCTOR
+            this.width = 90;
+            this.height = 40;
+            this.cx = x;
+            this.cy = y;
+            this.moveX = 0;
+            this.speed = 1;
+
+            this.show = function () {
+                ctx.drawImage(cloudImage, this.cx, this.cy, this.width, this.height);
+                /*ctx.beginPath();
+                ctx.fillStyle = "white";
+                ctx.fillRect(this.cx,this.cy, this.width, this.height);            
+                ctx.fill();
+                ctx.closePath();*/
+            }
+            this.move = function () {                           //CLOUD MOVE,  
+                if (this.cy >= 180 && cloudChangeMove == false) {
+                    this.cy -= this.speed;
+                    if (this.cy == 180) {
+                        cloudChangeMove = true;
+                    }
+                }
+                if (cloudChangeMove == true) {
+                    this.cy += this.speed;
+                    if (this.cy == 550) {
+                        cloudChangeMove = false;
+                    }
+                }
+
+            }
+        }
+        function Star() {            //STAR CONSTRUCTOR 
+            this.x = Math.floor(Math.random() * (canvas.width - 16)) + 16;  //get random number
+            this.y = Math.floor(Math.random() * (canvas.height - 8)) + 8;
+            this.radius = 3;
+            this.speed = 1;
+            this.dx = 0;
+            this.dy;
+            this.width = 30;
+            this.height = 30;
+
+            this.show = function () {
+                ctx.drawImage(starImage, this.x, this.y, this.width, this.height);
+                /*ctx.beginPath();
+                //ctx.arc(this.x,this.y,this.radius,0, Math.PI*2);
+                ctx.fillRect(this.x, this.y, this.width,this.height);
+                ctx.fillStyle = "#ccffff";
+                ctx.fill();
+                ctx.closePath();*/
+            }
+
+        }
+
+        function cloudMove() {           //MAKE CLOUD MOVE
+            clouds[6].move();
+        }
+        setInterval(cloudMove, 10);
+
+        /***************************************************************************************************
+                       DRAW AND CHECK LIMITS 
+        ****************************************************************************************************/
+        function create() {
+            requestAnimationFrame(create);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fill();
+            for (var i = 0; i < cloudCount; i++) {                 //SHOW ALL CLOUDS
+                clouds[i].show();
+            }
+
+            player.newPos();
+            drawPlayer();
+            score();                                     //SHOW CURRENT SCORE
+            onCloud = false;                             //IS PLAYER ON CLOUD
+
+            if (moreStars == true) {                   //IF GAME ENDS STOP TRYING TO SHOW MORE STARS
+
+                for (var i = 0; i < 7; i++) {
+                    if (player.x + 20 > clouds[i].cx && player.x < clouds[i].cx + clouds[i].width &&      //COLLISION DETECTION TO STAY ON CLOUD
+                        player.y >= clouds[i].cy - player.radius && player.y < clouds[i].cy + clouds[i].height - 25) {
+                        player.y = clouds[i].cy - player.radius;
+                        player.gravitySpeed = 0;
+                        onCloud = true;
+                    }
+                }
+
+                for (var i = 0; i < starCount; i++) {
+                    stars[i].show(); // show stars
+                }
+
+                for (var i = 0; i < starCount; i++) {                                                    //PLAYER AND STAR COLLISION
+                    if ((player.x + player.width > stars[i].x || player.x > stars[i].x) && player.x < stars[i].x + stars[i].width
+                        && (player.y > stars[i].y || player.y + player.height > stars[i].y) && player.y < stars[i].y + stars[i].height) {
+                        stars.splice(i, 1);
+                        starsTaken++;
+                        starCount--;
+                    }
+                }
+            }
+
+        }
+        /*************************************************************************************************/
+        function drawPlayer() {
+            ctx.drawImage(playerFace, player.x, player.y, player.width, player.height);
+            /*ctx.beginPath();
+            ctx.fillStyle = "purple";
+            ctx.fillRect(player.x,player.y,60,60);
+            ctx.fill();
+            ctx.closePath();*/
+        }
+
+        function player() {
+            this.radius = 10;                      //PLAYER CONSTRUCTOR
+            this.gravity = 0.4;
+            this.gravitySpeed = 0;
+            this.x = canvas.width / 2;
+            this.y = canvas.height / 2;
+            this.speedY = 0;
+            this.speedX = 0;
+            this.width = 60;
+            this.height = 60;
+
+            this.draw = function () {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = "purple";
+                ctx.fill();
+                ctx.closePath();
+            }
+
+            this.newPos = function () {
+                this.gravitySpeed += this.gravity;            //Gravity 
+                this.y += this.gravitySpeed;
+                this.x += this.speedX;
+
+                //MOVE PLAYER ACROSS THE SCREEN AND PLAYER LIMITS DETECTION
+                if (this.y > canvas.height - 41) {
+                    onGround == true;
+                    this.y = canvas.height - 40;
+                    this.gravitySpeed = 0;
+                }
+                if (onGround == false && onCloud == false) {
+                    onGround = true;
+                }
+                if (rightPressed) {
+                    this.x += 4;
+                }
+                else if (leftPressed) {
+                    this.x -= 4;
+                }
+                if (this.x > canvas.width - 5) {
+                    this.x = 15;
+                }
+                if (this.x < 15) {
+                    this.x = canvas.width - 16;
+                }
+
+            }
+
+            this.up = function (e) {
+                let up = -10;
+                if (this.y > canvas.height - 41 || onCloud == true) {     //PLAYER JUMP
+                    this.gravitySpeed += up;
+                }
+            }
+        }
+
+        document.body.onkeydown = function (e) {                //KEY DETECTIONS,
+            if (e.keyCode == 32) {
+                jumpSound.play();
+                player.up();
+            }
+        }
+
+        document.addEventListener("keydown", keyDownHandler);
+        document.addEventListener("keyup", keyUpHandler);
+
+        function keyDownHandler(e) {
+            if (e.keyCode == 39) {
+                // console.log('right');
+                rightPressed = true;
+            }
+            else if (e.keyCode == 37) {
+                // console.log("left");
+                leftPressed = true;
+            }
+        }
+
+        function keyUpHandler(e) {
+            if (e.keyCode == 39) {
+                rightPressed = false;
+            }
+            else if (e.keyCode == 37) {
+                leftPressed = false;
+            }
+        }
+
+        function score() {
+            var score = document.getElementById("score");      //CHANGE SCORE DIV ACCORDING TO THE CURRENT STARS TAKEN
+            score.innerHTML = "Stars Picked: " + starsTaken;
+        }
+
+
+        function time() {                                          //COUNT DOWN TIMER
+            var seconds = document.getElementById("seconds");
+            seconds.innerHTML = "Seconds Left: " + secondsLeft;
+            if (zero == false) {
+                var counter = 1;
+                secondsLeft = secondsLeft - counter;
+            }
+
+            if (secondsLeft == 3) {
+                countDownSound.play();
+            }
+
+            if (secondsLeft == -2) {
+                forestSounds.stop();
+                gameoverSound.play();
+                counter = 0;
+                zero = true;
+                console.log("zero");
+                for (var i = 0; i < starCount; i++) {           //GET RID OF THE REMAINING STARS 
+                    stars.splice(i, 1);
+                }
+                playAgain();                               //SHOW SCORE SPLASH SCREEN
+                moreStars = false;
+
+            }
+            var countDown = setTimeout(time, 1000)
+        }
+
+        $('#startButton').click(function () {
+            $(this).parent('#splashScreen').fadeOut(500);       //FADE OUT SPLASH SCREEN AFTER CLICK,
+            create();
+            time();
+            forestSounds.play();
+        });
+
+
+        function playAgain() {                              //SHOW SPLASH SCREEN WITH SCORE 
+
+            var score = document.getElementById("score").textContent;
+            console.log(score);
+            var theScore = document.getElementById("scoreInfo");
+            theScore.innerHTML = score;
+
+            if (starCount == 0) {
+                theScore.innerHTML += ", You got all of them! you rock!! ";
+                allStars = true;
+                console.log("all stars");
+            }
+
+            if (starCount < 11 && allStars == false) {
+                theScore.innerHTML += ", woow pretty close to get them all!";
+            }
+
+
+            $("#playAgainScreen").show();
+        }
+
+        function refresh() {
+            document.location.reload();
+        }
+
+
+    </script>
+
+</body>
+
+</html>
