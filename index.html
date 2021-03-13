@@ -25,6 +25,10 @@
         text-align: center;
     }
 
+    .info {
+        position: relative;
+    }
+
     #seconds {
         font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
         font-size: 2rem;
@@ -56,6 +60,7 @@
         left: 0;
         bottom: 0;
         width: 100%;
+        height: 100%;
         display: none;
         background-image: url(fire4.jpg);
     }
@@ -101,6 +106,41 @@
         align-items: center;
         justify-content: center;
     }
+
+    .btn-play {
+        cursor: pointer;
+        color: black;
+        background: white;
+        height: 40px;
+        width: 80px;
+        border-radius: 5px;
+        transition: all .250s ease;
+    }
+
+    .btn-play:hover {
+        background: black;
+        color: rgb(64, 255, 239);
+    }
+
+    .btn-link {
+        color: rgb(82, 42, 134);
+        font-size: 1rem;
+    }
+
+    .controls-spacebar,
+    .controls-arrows {
+        position: absolute;
+        height: 80px;
+        bottom: -100px;
+    }
+
+    .controls-spacebar {
+        left: 20%;
+    }
+
+    .controls-arrows {
+        right: 20%;
+    }
 </style>
 
 <body>
@@ -114,7 +154,7 @@
             <li>Move by pressing the right or left arrow keys</li>
         </ol>
 
-        <button id="startButton" type="button" class="btn "><a href="#" class="enter_link">Play!!</a></button>
+        <button id="startButton" type="button" class="btn-play"><a href="#" class="btn-link"></a>Play!!</a></button>
     </div>
 
     <!------------------------------------------- TIME AND SCORE DIV CONTAINERS ------------------------------------------------>
@@ -122,9 +162,12 @@
         <div class="row info">
             <div class="col-md-6 info-container" id="seconds">Hi</div>
             <div class="col-md-6 info-container" ; id="score">Welcome</div>
+            <img class="controls-spacebar" src="spacebar_drawing.png" />
+            <img class="controls-arrows" src="arrows_drawing.png" />
         </div>
-        <canvas id='canvas' width="500" height="600"></canvas>
-        <!--CANVAS-->
+        <canvas id='canvas' width="500" height="600">
+    </div>
+    <!--CANVAS-->
     </div>
 
     <!------------------------------------------- LAST SCREEN (PLAY AGAIN) ------------------------------------------------>
@@ -133,8 +176,8 @@
         <h3 id="displayScore"></h3>
         <h3 id="scoreInfo"></h3>
         <h3>Do you want to play again? click play!</h3>
-        <button onclick="refresh()" id="starAgain" type="button" class="btn btn-outline-primary"><a href="#"
-                class="enter_link">Play!!</a></button>
+        <button onclick="refresh()" id="starAgain" type="button" class="btn-play"><a href="#"
+                class="btn-link"></a>Play!!</a></button>
     </div>
     <script>
         var canvas = document.getElementById('canvas');
@@ -164,7 +207,7 @@
             }
         }
         /******************************************** Global Declarations *****************************/
-        var secondsLeft = 50;
+        var secondsLeft = 40;
         var startInfo = document.getElementById("startInfo");
         startInfo.innerHTML += " " + secondsLeft + " seconds! :)";  //CHANGE WELCOME PAGE DEPENDING ON THE SPECIFIED SECONDS
         var player = new player();
